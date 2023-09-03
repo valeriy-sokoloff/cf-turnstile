@@ -1,58 +1,67 @@
-# hCaptcha
-[![Gem Version](https://badge.fury.io/rb/hcaptcha.svg)](https://badge.fury.io/rb/hcaptcha)
+# CF-Turnstile
+[![Gem Version](https://badge.fury.io/rb/cf-turnstile.svg)](https://badge.fury.io/rb/cf-turnstile)
 
 ## Credits
 
+* https://github.com/Nexus-Mods/hcaptcha
 * https://github.com/Retrospring/hcaptcha
 * https://github.com/firstmoversadvantage/hcaptcha
 * https://github.com/ambethia/recaptcha
 
 ## Overview
 
-License:   [MIT](http://creativecommons.org/licenses/MIT/)  
-Bugs:      https://github.com/firstmoversadvantage/hcaptcha/issues
+License:   [MIT](http://creativecommons.org/licenses/MIT/)
 
-This gem provides helper methods for the [hCaptcha API](https://hcaptcha.com). In your
-views you can use the `hcaptcha_tags` method to embed the needed javascript, and you can validate
-in your controllers with `verify_hcaptcha` or `verify_hcaptcha!`.
+This gem provides helper methods for the [Cloudflare Turnstile API](https://developers.cloudflare.com/turnstile/). In your
+views you can use the `turnstile_tags` method to embed the needed javascript, and you can validate
+in your controllers with `verify_turnstile` or `verify_turnstile!`.
 
 ## Obtaining a key and setup
 
-Go to the [hCaptcha](https://hcaptcha.com/webmaster/signup) signup page to obtain API keys. **You'll also need to set a hostname that your application will run from, even for local development. hCaptcha will not work if your application is being served from `localhost` or `127.0.0.1`. You will need to add a hosts entry for local development.** See the [hCaptcha docs](https://hcaptcha.com/docs) for how to do this.
-
-The hostname you set it to must be a real hostname, since hCaptcha validates it when you create it in the portal. For example, `example.fmadata.com` does not have a DNS record, but `mydomain.com` does. The DNS record doesn't need to point to your application though, it just has to exist - that's why we added the record into the local hosts file.
+Go to the [Cloudflare dashboard](https://dash.cloudflare.com/?to=/:account/turnstile) and generate API keys. 
+See the Turnstile [Get started](https://developers.cloudflare.com/turnstile/get-started/) page for more information.
 
 ## Installation
 
-FIrst, add the gem to your bundle:
+First, add the gem to your Gemfile:
 ```shell
-bundle add hcaptcha
+gem 'cf-turnstile', github: 'valeriy-sokoloff/cf-turnstile', require: 'turnstile'
 ```
 
+Then run `bundle install`
+
 Then, set the following environment variables:
-* `HCAPTCHA_SECRET_KEY`
-* `HCAPTCHA_SITE_KEY`
+* `TURNSTILE_SECRET_KEY`
+* `TURNSTILE_SITE_KEY`
+
+or in case you're using Rails, create an `turnstile.rb` initializer:
+```ruby
+Turnstile.configure do |config|
+  config.site_key  = '<your_site_key>'
+  config.secret_key = '<your_secret_key>'
+end
+```
 
 > 💡 You should keep keys out of your codebase with external environment variables (using your shell's `export` command), Rails (< 5.2) [secrets](https://guides.rubyonrails.org/v5.1/security.html#custom-secrets), Rails (5.2+) [credentials](https://guides.rubyonrails.org/security.html#custom-credentials), the [dotenv](https://github.com/bkeepers/dotenv) or [figaro](https://github.com/laserlemon/figaro) gems, …
 
 ## Usage
 
-First, add `hcaptcha_tags` to the forms you want to protect:
+First, add `turnstile_tags` to the forms you want to protect:
 
 ```erb
 <%= form_for @foo do |f| %>
   # …
-  <%= hcaptcha_tags %>
+  <%= turnstile_tags %>
   # …
 <% end %>
 ```
 
-Then, add `verify_hcaptcha` logic to each form action that you've protected:
+Then, add `verify_turnstile` logic to each form action that you've protected:
 
 ```ruby
 # app/controllers/users_controller.rb
 @user = User.new(params[:user].permit(:name))
-if verify_hcaptcha(model: @user) && @user.save
+if verify_turnstile(model: @user) && @user.save
   redirect_to @user
 else
   render 'new'
@@ -60,54 +69,54 @@ end
 ```
 
 If you are **not using Rails**, you should:
-* `include Hcaptcha::Adapters::ViewMethods` where you need `recaptcha_tags`
-* `include Hcaptcha::Adapters::ControllerMethods` where you need `verify_hcaptcha`
+* `include Turnstile::Adapters::ViewMethods` where you need `turnstile_tags`
+* `include Turnstile::Adapters::ControllerMethods` where you need `verify_turnstile`
 
 ### API details
 
-### `hcaptcha_tags(options = {})`
+### `turnstile_tags(options = {})`
 
 Use in your views to render the JavaScript widget.
 
 Available options:
 
-| Option                  | Description |
-|-------------------------|-------------|
-| `:badge`                | _legacy, ignored_
-| `:callback`             | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:chalexpired_callback` | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:class`                | Additional CSS classes added to `h-captcha` on the placeholder
-| `:close_callback`       | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:error_callback`       | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:expired_callback`     | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:external_script`      | _alias for `:script` option_
-| `:hl`                   | _see [official documentation](https://docs.hcaptcha.com/configuration) and [available language codes](https://docs.hcaptcha.com/languages)_
-| `:open_callback`        | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:nonce`                | Add a `nonce="…"` attribute to the `<script>` tag
-| `:onload`               | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:recaptchacompat`      | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:render`               | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:script_async`         | Add `async` attribute to the `<script>` tag (default: `true`)
-| `:script_defer`         | Add `defer` attribute to the `<script>` tag (default: `true`)
-| `:script`               | Generate the `<script>` tag (default: `true`)
-| `:site_key`             | Set hCaptcha Site Key (overrides `HCAPTCHA_SITE_KEY` environment variable)
-| `:size`                 | _see [official documentation](https://docs.hcaptcha.com/configuration)_
-| `:stoken`               | _legacy, raises an exception_
-| `:ssl`                  | _legacy, raises an exception_
-| `:theme`                | _see [official documentation](https://docs.hcaptcha.com/configuration)_ (default: `:dark`)
-| `:type`                 | _legacy, ignored_
-| `:ui`                   | _legacy, ignored_
+| Option                         | Description                                                                                                                                      |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `:action`                      | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:cdata`                       | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:callback`                    | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:error_callback`              | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:execution`                   | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:expired_callback`            | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:class`                       | Additional CSS classes added to `cf-turnstile` on the placeholder                                                                                |
+| `:external_script`             | _alias for `:script` option_                                                                                                                     |
+| `:before_interactive_callback` | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:after_interactive_callback`  | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:unsupported_callback`        | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:theme`                       | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_ (default: `:dark`) |
+| `:language`                    | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:tabindex`                    | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:timeout_callback`            | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:script_async`                | Add `async` attribute to the `<script>` tag (default: `true`)                                                                                    |
+| `:script_defer`                | Add `defer` attribute to the `<script>` tag (default: `true`)                                                                                    |
+| `:script`                      | Generate the `<script>` tag (default: `true`)                                                                                                    |
+| `:site_key`                    | Set Turnstile Site Key (overrides `TURNSTILE_SITE_KEY` environment variable)                                                                     |
+| `:size`                        | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:retry`                       | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:retry_interval`              | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:refresh_expired`             | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
+| `:appearance`                  | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
 
 > ℹ️ Unkown options will be passed directly as attributes to the placeholder element.
 >
-> For example, `hcaptcha_tags(foo: "bar")` will generate the default script tag and the following placeholder tag:
+> For example, `turnstile_tags(foo: "bar")` will generate the default script tag and the following placeholder tag:
 > ```html
-> <div class="h-captcha" data-sitekey="…" foo="bar"></div>
+> <div class="cf-turnstile" data-sitekey="…" foo="bar"></div>
 > ```
 
-### `verify_hcaptcha`
+### `verify_turnstile`
 
-This method returns `true` or `false` after processing the response token from the hCaptcha widget.
+This method returns `true` or `false` after processing the response token from the Turnstile widget.
 This is usually called from your controller.
 
 Passing in the ActiveRecord object via `model: object` is optional. If you pass a `model`—and the
@@ -119,35 +128,35 @@ you like.
 
 Some of the options available:
 
-| Option         | Description |
-|----------------|-------------|
-| `:model`       | Model to set errors.
-| `:attribute`   | Model attribute to receive errors. (default: `:base`)
-| `:message`     | Custom error message.
-| `:secret_key`  | Override the secret API key from the configuration.
-| `:timeout`     | The number of seconds to wait for hCaptcha servers before give up. (default: `3`)
-| `:response`    | Custom response parameter. (default: `params['g-recaptcha-response']`)
-| `:hostname`    | Expected hostname or a callable that validates the hostname, see [domain validation](https://developers.google.com/recaptcha/docs/domain_validation) and [hostname](https://developers.google.com/recaptcha/docs/verify#api-response) docs. (default: `nil`, but can be changed by setting `config.hostname`)
-| `:env`         | Current environment. The request to verify will be skipped if the environment is specified in configuration under `skip_verify_env`
+| Option        | Description                                                                                                                                                                                                                                                                                                   |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `:model`      | Model to set errors.                                                                                                                                                                                                                                                                                          |
+| `:attribute`  | Model attribute to receive errors. (default: `:base`)                                                                                                                                                                                                                                                         |
+| `:message`    | Custom error message.                                                                                                                                                                                                                                                                                         |
+| `:secret_key` | Override the secret API key from the configuration.                                                                                                                                                                                                                                                           |
+| `:timeout`    | The number of seconds to wait for Turnstile servers before give up. (default: `3`)                                                                                                                                                                                                                            |
+| `:response`   | Custom response parameter. (default: `params['cf-turnstile-response']`)                                                                                                                                                                                                                                       |
+| `:hostname`   | Expected hostname or a callable that validates the hostname, see [domain validation](https://developers.google.com/recaptcha/docs/domain_validation) and [hostname](https://developers.google.com/recaptcha/docs/verify#api-response) docs. (default: `nil`, but can be changed by setting `config.hostname`) |
+| `:env`        | Current environment. The request to verify will be skipped if the environment is specified in configuration under `skip_verify_env`                                                                                                                                                                           |
 
 ## I18n support
 
-hCaptcha supports the I18n gem (it comes with English translations)
+Turnstile supports the I18n gem (it comes with English translations)
 To override or add new languages, add to `config/locales/*.yml`
 
 ```yaml
 # config/locales/en.yml
 en:
-  recaptcha:
+  turnstile:
     errors:
-      verification_failed: 'hCaptcha was incorrect, please try again.'
-      recaptcha_unreachable: 'hCaptcha verification server error, please try again.'
+      verification_failed: Turnstile verification failed, please try again.
+      recaptcha_unreachable: Oops, we failed to validate your Turnstile response. Please try again.
 ```
 
 ## Testing
 
-By default, hCaptcha is skipped in "test" and "cucumber" env. To enable it during test:
+By default, Turnstile is skipped in "test" and "cucumber" env. To enable it during test:
 
 ```ruby
-Hcaptcha.configuration.skip_verify_env.delete("test")
+Turnstile.configuration.skip_verify_env.delete("test")
 ```

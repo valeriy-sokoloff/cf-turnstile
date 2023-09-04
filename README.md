@@ -36,7 +36,7 @@ Then, set the following environment variables:
 * `TURNSTILE_SECRET_KEY`
 * `TURNSTILE_SITE_KEY`
 
-or in case you're using Rails, create an `turnstile.rb` initializer:
+or in case you're using Rails, create a `turnstile.rb` initializer:
 ```ruby
 Turnstile.configure do |config|
   config.site_key  = '<your_site_key>'
@@ -95,7 +95,7 @@ Available options:
 | `:before_interactive_callback` | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
 | `:after_interactive_callback`  | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
 | `:unsupported_callback`        | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
-| `:theme`                       | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_ (default: `:dark`) |
+| `:theme`                       | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_ (default: `:auto`) |
 | `:language`                    | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
 | `:tabindex`                    | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |
 | `:timeout_callback`            | _see [official documentation](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#configurations)_                    |

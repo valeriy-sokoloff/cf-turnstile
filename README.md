@@ -1,5 +1,4 @@
 # CF-Turnstile
-[![Gem Version](https://badge.fury.io/rb/cf-turnstile.svg)](https://badge.fury.io/rb/cf-turnstile)
 
 ## Credits
 
@@ -7,6 +6,9 @@
 * https://github.com/Retrospring/hcaptcha
 * https://github.com/firstmoversadvantage/hcaptcha
 * https://github.com/ambethia/recaptcha
+
+## WARNING
+Missing tests.
 
 ## Overview
 

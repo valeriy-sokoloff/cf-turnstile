@@ -152,7 +152,7 @@ en:
   turnstile:
     errors:
       verification_failed: Turnstile verification failed, please try again.
-      recaptcha_unreachable: Oops, we failed to validate your Turnstile response. Please try again.
+      turnstile_unreachable: Oops, we failed to validate your Turnstile response. Please try again.
 ```
 
 ## Testing

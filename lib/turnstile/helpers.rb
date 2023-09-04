@@ -68,6 +68,7 @@ module Turnstile
       %i[
         action
         callback
+        cdata
         error_callback
         execution
         expired_callback
@@ -90,7 +91,6 @@ module Turnstile
         attributes["data-#{data_attribute.to_s.tr('_', '-')}"] = value if value
       end
       attributes["data-sitekey"] = options.delete(:site_key) || Turnstile.configuration.site_key!
-      attributes["data-cData"] = options.delete(:cdata)
 
       # Forge CSS classes
       attributes["class"] = ['cf-turnstile', options.delete(:class)].compact.join(' ')

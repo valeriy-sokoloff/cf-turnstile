@@ -72,13 +72,13 @@ PLATFORMS
 
 DEPENDENCIES
   bump
+  cf-turnstile!
   i18n
   maxitest
   mocha
   pry-byebug
   rake
   rubocop
-  turnstile!
   webmock
 
 BUNDLED WITH

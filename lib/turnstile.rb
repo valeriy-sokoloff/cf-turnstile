@@ -65,6 +65,9 @@ module Turnstile
     verify_hash['remoteip'] = options[:remote_ip] if options.key?(:remote_ip)
 
     reply = api_verification(verify_hash, timeout: options[:timeout])
+    if reply['success'].to_s == 'false'
+      puts reply.inspect
+    end
     reply['success'].to_s == 'true'
   end
 
@@ -75,12 +78,14 @@ module Turnstile
     else
       Net::HTTP
     end
-    query = URI.encode_www_form(verify_hash)
-    uri = URI.parse("#{configuration.verify_url}?#{query}")
+    uri = URI.parse(configuration.verify_url)
     http_instance = http.new(uri.host, uri.port)
     http_instance.read_timeout = http_instance.open_timeout = timeout
     http_instance.use_ssl = true if uri.port == 443
-    request = Net::HTTP::Get.new(uri.request_uri)
+
+    request = Net::HTTP::Post.new(uri.request_uri, {'Content-Type' => 'application/json'})
+    request.body = verify_hash.to_json
+
     JSON.parse(http_instance.request(request).body)
   end
 end
